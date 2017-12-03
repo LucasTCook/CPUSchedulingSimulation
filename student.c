@@ -1,7 +1,9 @@
 /*
  * student.c
  * Multithreaded OS Simulation for CS 425, Project 3
- * Acknowledgement: The code is authored by Kishore Ramachandran at Gatech. 
+ * Acknowledgement: The code is authored by Kishore Ramachandran at Gatech.
+ * 
+ * The code has been altered by Tyler Carrico and Lucas Cook
  *
  * This file contains the CPU scheduler for the simulation.  
  */
@@ -15,10 +17,8 @@
 
 
 typedef struct Queue{
-
     pcb_t *head;
     pcb_t *tail;
-
 } Queue;
 
 /*
@@ -57,24 +57,19 @@ static int cs_runtime = -1;
  *	about it and its parameters.
  */
 
-static void schedule(unsigned int cpu_id)
-{
-if (ready-> head == NULL)
-    {
+static void schedule(unsigned int cpu_id){
+    if (ready-> head == NULL){
         context_switch(cpu_id, NULL, cs_runtime);
     }
-    else
-    {
+    else{
         pthread_mutex_lock(&ready_mutex);
         pcb_t *temp = ready->head;
         temp->state = PROCESS_RUNNING;
-        if(ready->head == ready->tail)
-        {
+        if(ready->head == ready->tail){
             ready->head = NULL;
             ready->tail = NULL;
         }
-        else
-        {
+        else{
             ready->head = temp->next;
         }
         pthread_mutex_lock(&current_mutex);
@@ -92,16 +87,13 @@ if (ready-> head == NULL)
  * This function should block until a process is added to your ready queue.
  * It should then call schedule() to select the process to run on the CPU.
  */
-extern void idle(unsigned int cpu_id)
-{
+extern void idle(unsigned int cpu_id){
     pthread_mutex_lock(&current_mutex);
-    while(pthread_cond_wait(&idle_condition, &current_mutex));  //wait until the condition variable is released/signaled
-    pthread_mutex_unlock(&current_mutex);  //unlock the current mutex
-    schedule(cpu_id);  //schedule the cpu
+    while(pthread_cond_wait(&idle_condition, &current_mutex)); 
+    pthread_mutex_unlock(&current_mutex);
+    schedule(cpu_id); 
 
     /*
-     * REMOVE THE LINE BELOW AFTER IMPLEMENTING IDLE()
-     *
      * idle() must block when the ready queue is empty, or else the CPU threads
      * will spin in a loop.  Until a ready queue is implemented, we'll put the
      * thread to sleep to keep it from consuming 100% of the CPU time.  Once
@@ -118,18 +110,15 @@ extern void idle(unsigned int cpu_id)
  * This function should place the currently running process back in the
  * ready queue, and call schedule() to select a new runnable process.
  */
-extern void preempt(unsigned int cpu_id)
-{
+extern void preempt(unsigned int cpu_id){
     pthread_mutex_lock(&current_mutex);
     pthread_mutex_lock(&ready_mutex);
     current[cpu_id]->state = PROCESS_READY;
-    if(ready->head == NULL)
-    {
+    if(ready->head == NULL){
         ready->head = current[cpu_id];
         ready->tail = current[cpu_id];
     }
-    else
-    {
+    else{
         ready->tail->next = current[cpu_id];
         ready->tail = current[cpu_id];
     }
@@ -146,8 +135,7 @@ extern void preempt(unsigned int cpu_id)
  * It should mark the process as WAITING, then call schedule() to select
  * a new process for the CPU.
  */
-extern void yield(unsigned int cpu_id)
-{
+extern void yield(unsigned int cpu_id){
     pthread_mutex_lock(&current_mutex);
     current[cpu_id]->state = PROCESS_WAITING;
     pthread_mutex_unlock(&current_mutex);
@@ -160,9 +148,7 @@ extern void yield(unsigned int cpu_id)
  * It should mark the process as terminated, then call schedule() to select
  * a new process for the CPU.
  */
-extern void terminate(unsigned int cpu_id)
-{
-
+extern void terminate(unsigned int cpu_id){
     pthread_mutex_lock(&current_mutex);
     current[cpu_id]->state = PROCESS_TERMINATED;
     pthread_mutex_unlock(&current_mutex);
@@ -190,13 +176,11 @@ extern void wake_up(pcb_t *process)
     process->state = PROCESS_READY;
     pthread_mutex_lock(&ready_mutex);
 
-    if(ready->head == NULL)
-    {
+    if(ready->head == NULL){
         ready->head = process;
         ready->tail = process;
     }
-    else
-    {
+    else{
         ready->tail->next = process;
         ready->tail = process;
     }
@@ -225,11 +209,8 @@ int main(int argc, char *argv[])
     }
     cpu_count = atoi(argv[1]);
 
-    if(argc > 2)
-    {
-        if(strcmp(argv[2], "-r") == 0)
-
-        {
+    if(argc > 2){
+        if(strcmp(argv[2], "-r") == 0){
             round_robin_flag = 1;
             cs_runtime = atoi(argv[3]);
         }
@@ -237,11 +218,11 @@ int main(int argc, char *argv[])
 
     /* Allocate the current[] array and its mutex */
     current = malloc(sizeof(pcb_t*) * cpu_count);
-    ready = malloc(sizeof(Queue*));
     assert(current != NULL);
     pthread_mutex_init(&current_mutex, NULL);
     pthread_mutex_init(&ready_mutex, NULL);
-
+    ready = malloc(sizeof(Queue*));
+    
     /* Start the simulator in the library */
     start_simulator(cpu_count);
 

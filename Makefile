@@ -9,7 +9,7 @@ target=os-sim
 cflags=-Wall -g -O0 -Werror -pedantic -std=c99
 lflags=-lpthread
 
-all: $(target)
+all:$(target)
 
 $(target) : $(obj) $(misc)
 	gcc $(cflags) -o $(target) $(obj) $(lflags)
